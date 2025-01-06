@@ -1,56 +1,55 @@
-dayNightTheme = () => {
-    let date = new Date();
-    let hour = date.getHours();
-  
-    if(hour >= 7 && hour < 19){
-      document.body.style.backgroundColor = 'white';
-      document.body.style.color = 'black';
-    }
-    else{
-      document.body.style.backgroundColor = 'black';
-      document.body.style.color = 'white';
-    }
-  }
-  
-  window.addEventListener('load', dayNightTheme);
-  
-  document.querySelector("#input").addEventListener("keydown", (event) => {
-    if (event.key == "Enter")
-      apiRequest();
-  });
-  
-  document.querySelector("#search").addEventListener("click", () => {
-      apiRequest();
-  });
-  
-  apiRequest = () => {
-  
-    document.querySelector("#grid").textContent = "";
-  
-    const url = 'https://api.unsplash.com/search/photos?query='+input.value+'&per_page=30&client_id=SouHY7Uul-OxoMl3LL3c0NkxUtjIrKwf3tsGk1JaiVo';
-  
+let movieNameRef = document.getElementById("movie-name");
+let searchBtn = document.getElementById("search-btn");
+let result = document.getElementById("result");
+
+//Function to fetch data from API
+let getMovie = () => {
+  let movieName = movieNameRef.value;
+  let url = `http://www.omdbapi.com/?t=${movieName}&apikey=${key}`;
+
+  //If input field is empty
+  if (movieName.length <= 0) {
+    result.innerHTML = `<h3 class="msg">Please Enter A Movie Name</h3>`;
+  } else {
     fetch(url)
-  
-    .then(response => {
-      if (!response.ok) throw Error(response.statusText);
-        return response.json();
-     })
-  
-     .then(data => {
-        loadImages(data);
-     })
-  
-     .catch(error => console.log(error));   
-  }
-  
-  loadImages = (data) => {
-    for(let i = 0;i < data.results.length;i++){
-      let image = document.createElement("div");
-      image.className = "img";
-      image.style.backgroundImage = "url("+data.results[i].urls.raw + "&w=1366&h=768" +")";
-      image.addEventListener("dblclick", function(){
-        window.open(data.results[i].links.download, '_blank');
+      .then((resp) => resp.json())
+      .then((data) => {
+        if (data.Response == "True") {
+          result.innerHTML = `
+            <div class="info">
+              <img src="${data.Poster}" alt="Poster" class="poster" />
+              <div>
+                <h2>${data.Title}</h2>
+                <div class="rating">
+                  <img src="star-icon.svg" alt="Star">
+                  <h4>${data.imdbRating}</h4>
+                </div>
+                <div class="details">
+                  <span>${data.Rated}</span>
+                  <span>${data.Year}</span>
+                  <span>${data.Runtime}</span>
+                </div>
+                <div class="genre">
+                  ${data.Genre.split(",")
+                    .map((genre) => `<div>${genre}</div>`)
+                    .join("")}
+                </div>
+              </div>
+            </div>
+            <h3>Plot:</h3>
+            <p>${data.Plot}</p>
+            <h3>Cast:</h3>
+            <p>${data.Actors}</p>
+          `;
+        } else {
+          result.innerHTML = `<h3 class='msg'>${data.Error}</h3>`;
+        }
       })
-      document.querySelector("#grid").appendChild(image);
-    }
+      .catch(() => {
+        result.innerHTML = `<h3 class="msg">Error Occurred</h3>`;
+      });
   }
+};
+
+searchBtn.addEventListener("click", getMovie);
+window.addEventListener("load", getMovie);
